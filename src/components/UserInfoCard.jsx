@@ -25,7 +25,7 @@ export function UserInfoCard({
       case 'premium':
         return '高级会员';
       default:
-        return '普通用户';
+        return '233普通用户233';
     }
   };
   return <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
