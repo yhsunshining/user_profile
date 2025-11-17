@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 // @ts-ignore;
 import { useToast } from '@/components/ui';
 // @ts-ignore;
-import { ArrowLeft, LogOut } from 'lucide-react';
+import { ArrowLeft, LogOut, RefreshCw } from 'lucide-react';
 
 import { UserInfoCard } from '@/components/UserInfoCard';
 import { StatsCard } from '@/components/StatsCard';
 import { MenuList } from '@/components/MenuList';
+import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { AnimatedCard } from '@/components/AnimatedCard';
 export default function ProfilePage(props) {
   const {
     $w,
@@ -24,6 +26,7 @@ export default function ProfilePage(props) {
     growth: 0
   });
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   useEffect(() => {
     loadUserData();
   }, []);
@@ -43,7 +46,6 @@ export default function ProfilePage(props) {
       setUser(currentUser);
 
       // 模拟加载统计数据
-      // 实际项目中应该从数据库获取
       setStats({
         orders: Math.floor(Math.random() * 50) + 1,
         points: Math.floor(Math.random() * 1000) + 100,
@@ -60,6 +62,15 @@ export default function ProfilePage(props) {
     } finally {
       setLoading(false);
     }
+  };
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadUserData();
+    setRefreshing(false);
+    toast({
+      title: "刷新成功",
+      description: "数据已更新"
+    });
   };
   const handleMenuClick = action => {
     try {
@@ -129,12 +140,10 @@ export default function ProfilePage(props) {
   };
   const handleLogout = () => {
     try {
-      // 这里应该调用登出逻辑
       toast({
         title: "登出成功",
         description: "您已成功登出"
       });
-      // 跳转到登录页或首页
       $w.utils.navigateTo({
         pageId: 'login',
         params: {}
@@ -160,38 +169,59 @@ export default function ProfilePage(props) {
     }
   };
   if (loading) {
-    return <div style={style} className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          </div>;
+    return <div style={style} className="min-h-screen gradient-bg">
+        <div className="flex items-center justify-center h-screen">
+          <LoadingSpinner size="large" />
+        </div>
+      </div>;
   }
-  return <div style={style} className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-          {/* 头部导航 */}
-          <div className="bg-white shadow-sm sticky top-0 z-10">
-            <div className="flex items-center justify-between p-4">
-              <button onClick={handleBack} className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors">
-                <ArrowLeft className="w-5 h-5" />
-                <span>返回</span>
-              </button>
-              <h1 className="text-lg font-semibold text-gray-800">个人中心</h1>
-              <button onClick={handleLogout} className="flex items-center space-x-1 text-red-600 hover:text-red-700 transition-colors">
-                <LogOut className="w-4 h-4" />
-                <span className="text-sm">登出</span>
-              </button>
-            </div>
+  return <div style={style} className="min-h-screen gradient-bg">
+      {/* 头部导航 */}
+      <div className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-10">
+        <div className="flex items-center justify-between p-4">
+          <button onClick={handleBack} className="flex items-center space-x-2 text-gray-600 hover:text-gray-800 transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+            <span>返回</span>
+          </button>
+          
+          <h1 className="text-lg font-semibold text-gray-800">个人中心</h1>
+          
+          <div className="flex items-center space-x-2">
+            <button onClick={handleRefresh} disabled={refreshing} className="p-2 text-gray-600 hover:text-gray-800 transition-colors">
+              <RefreshCw className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+            <button onClick={handleLogout} className="flex items-center space-x-1 text-red-600 hover:text-red-700 transition-colors">
+              <LogOut className="w-4 h-4" />
+              <span className="text-sm">登出</span>
+            </button>
           </div>
+        </div>
+      </div>
 
-          {/* 主要内容 */}
-          <div className="p-4 space-y-6">
-            {/* 用户信息卡片 */}
-            <UserInfoCard user={user} />
+      {/* 主要内容 */}
+      <div className="p-4 space-y-6 max-w-2xl mx-auto">
+        {/* 用户信息卡片 */}
+        <AnimatedCard animation="slide-up" delay={100}>
+          <UserInfoCard user={user} />
+        </AnimatedCard>
 
-            {/* 统计数据 */}
-            <StatsCard stats={stats} />
+        {/* 统计数据 */}
+        <AnimatedCard animation="slide-up" delay={200}>
+          <StatsCard stats={stats} />
+        </AnimatedCard>
 
-            {/* 功能菜单 */}
-            <MenuList onMenuClick={handleMenuClick} />
+        {/* 功能菜单 */}
+        <AnimatedCard animation="slide-up" delay={300}>
+          <MenuList onMenuClick={handleMenuClick} />
+        </AnimatedCard>
+
+        {/* 底部信息 */}
+        <AnimatedCard animation="slide-up" delay={400}>
+          <div className="text-center text-sm text-gray-500 py-4">
+            <p>版本 v1.0.0</p>
+            <p className="mt-1">© 2024 个人中心</p>
           </div>
-        </div>;
+        </AnimatedCard>
+      </div>
+    </div>;
 }
